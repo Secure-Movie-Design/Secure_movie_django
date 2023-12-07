@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator, URLValidator, RegexValidator, \
     MinLengthValidator
 from django.db import models
@@ -22,12 +23,10 @@ class MovieCategory(models.TextChoices):
 
     @classmethod
     def choices(cls):
-        print(tuple((i.name, i.value) for i in cls))
         return tuple((i.name, i.value) for i in cls)
 
 
 class Movie(models.Model):
-
     id = models.AutoField(
         primary_key=True,
         null=False,
@@ -60,3 +59,28 @@ class Movie(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Like(models.Model):
+    id = models.AutoField(
+        primary_key=True,
+        null=False,
+    )
+    movie = models.ForeignKey(
+        to=Movie,
+        on_delete=models.CASCADE,
+        null=False,
+    )
+    user_id = models.ForeignKey(
+        to=get_user_model(),
+        on_delete=models.CASCADE,
+    )
+    liked = models.BooleanField(
+        null=False,
+    )
+
+    def __str__(self):
+        return self.movie.title
+
+    class Meta:
+        unique_together = ('movie', 'user_id',)
