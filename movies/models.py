@@ -58,5 +58,5 @@ class Movie(models.Model):
         null=False,
     )'''
 
-    def str(self):
+    def __str__(self):
         return self.title

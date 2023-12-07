@@ -75,3 +75,9 @@ def test_valid_movie_does_not_raise_exception(db):
     movie = mixer.blend('movies.Movie', title='A title', description='A description', year=2022,
                         category=MovieCategory.ACTION)
     movie.full_clean()
+
+
+def test_movie_to_string_returns_title(db):
+    movie = mixer.blend('movies.Movie', title='A title')
+    assert str(movie) == 'A title'
+

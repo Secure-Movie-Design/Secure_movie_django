@@ -14,6 +14,7 @@ coreapi = "^2.3.3"
 pyyaml = "^6.0.1"
 mixer = "^7.2.2"
 pytest-django = "^4.7.0"
+coverage = "^7.3.2"
 
 
 [build-system]
