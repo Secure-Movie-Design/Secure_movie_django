@@ -58,7 +58,7 @@ class Movie(models.Model):
     )'''
 
     def __str__(self):
-        return self.title
+        return f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}'
 
 
 class Like(models.Model):
@@ -80,7 +80,7 @@ class Like(models.Model):
     )
 
     def __str__(self):
-        return self.movie.title
+        return f'Movie: {self.movie.title}, Liked: {self.liked}'
 
     class Meta:
         unique_together = ('movie', 'user_id',)

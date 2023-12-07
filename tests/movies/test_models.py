@@ -88,9 +88,9 @@ def test_valid_like_does_not_raise_exception(db, movie):
     like.full_clean()
 
 
-def test_like_to_string_returns_movie_title(db, movie):
-    like = mixer.blend('movies.Like', movie=movie, liked=True)
-    assert str(like) == 'A title'
+def test_movie_to_string_returns_title(db):
+    movie = mixer.blend('movies.Movie', title='A title')
+    assert str(movie) == f'Title: {movie.title}, Description: {movie.description}, Year: {movie.year}, Category: {movie.category}'
 
 
 def test_null_movie_id_raises_exception(db):
@@ -113,6 +113,6 @@ def test_invalid_like_raises_exception(db, movie):
         mixer.blend('movies.Like', movie=movie, liked='a')
 
 
-def test_movie_to_string_returns_title(db):
-    movie = mixer.blend('movies.Movie', title='A title')
-    assert str(movie) == 'A title'
+def test_like_to_string_returns_movie_title(db, movie):
+    like = mixer.blend('movies.Like', movie=movie, liked=True)
+    assert str(like) == f'Movie: {movie.title}, Liked: True'
