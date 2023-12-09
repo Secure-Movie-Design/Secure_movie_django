@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
 
-# Create your views here.
+from movies.models import Movie, Like
+from movies.serializers import PublicMovieSerializer, PublicLikeSerializer
+
+
+class PublicMovieViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Movie.objects.all()
+    serializer_class = PublicMovieSerializer
+    permission_classes = [AllowAny]
