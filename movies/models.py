@@ -51,11 +51,11 @@ class Movie(models.Model):
         null=False,
         choices=MovieCategory.choices,
     )
-    '''image_url = models.URLField(
-        max_length=2000,
-        validators=[URLValidator(RegexValidator(regex=r'https://%28www.%29/?[-a-zA-Z0-9@:%.+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%+.~#?&//=]*)'))],
+    image_url = models.CharField(
+        max_length=200,
         null=False,
-    )'''
+        validators=[ RegexValidator(r"https://image\.tmdb\.org/t/p/w500/[a-zA-Z\d]{27}\.jpg")]
+    )
 
     def __str__(self):
         return f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}'

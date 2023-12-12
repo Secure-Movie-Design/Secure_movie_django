@@ -79,9 +79,19 @@ def test_null_category_raises_exception(db):
 
 def test_valid_movie_does_not_raise_exception(db):
     movie = mixer.blend('movies.Movie', title='A title', description='A description', year=2022,
-                        category=MovieCategory.ACTION)
+                        category=MovieCategory.ACTION, image_url="https://image.tmdb.org/t/p/w500/eQ4GRmP0EEkxjwlPbZlVn7HLoZp.jpg")
     movie.full_clean()
 
+def test_null_image_url_raises_exception(db):
+    with pytest.raises(IntegrityError):
+        mixer.blend('movies.Movie', image_url=None)
+
+
+
+def test_invalid_image_url_raises_exception(db):
+    movie = mixer.blend('movies.Movie',title='A title', description='A description', year=2022,category=MovieCategory.ACTION, image_url='https://picsum.photos/536/354')
+    with pytest.raises(ValidationError):
+        movie.full_clean()
 
 def test_valid_like_does_not_raise_exception(db, movie):
     like = mixer.blend('movies.Like', movie=movie, liked=True)
