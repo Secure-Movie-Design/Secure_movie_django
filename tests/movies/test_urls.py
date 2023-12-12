@@ -133,3 +133,62 @@ class TestMovieList:
         path = reverse('movies-detail', kwargs={'pk': response.data['id']})
         response = client.delete(path)
         assert response.status_code == HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+class TestLikeList:
+
+    def test_anonymous_user_cannot_add_like(self):
+        path = reverse('likes-list')
+        client = get_client()
+        response = client.post(path)
+        assert response.status_code == HTTP_403_FORBIDDEN
+
+    def test_anonymous_user_cannot_update_like(self):
+        path = reverse('likes-list')
+        client = get_client()
+        response = client.put(path)
+        assert response.status_code == HTTP_403_FORBIDDEN
+
+    def test_anonymous_user_cannot_remove_like(self):
+        path = reverse('likes-list')
+        client = get_client()
+        response = client.delete(path)
+        assert response.status_code == HTTP_403_FORBIDDEN
+
+    def test_anonymous_user_can_retrieve_likes(self, movies_and_likes):
+        path = reverse('likes-list')
+        client = get_client()
+        response = client.get(path)
+        assert response.status_code == HTTP_200_OK
+        obj = parse_response(response)
+        assert len(obj) == len(movies_and_likes)
+
+    def test_user_can_add_like(self, movie_content, user):
+        path = reverse('movies-list')
+        client = get_client(user)
+        response = client.post(path, data=movie_content)
+        path = reverse('likes-list')
+        response = client.post(path, data={'movie': response.data['id']})
+        assert response.status_code == HTTP_201_CREATED
+        obj = parse_response(response)
+        assert obj['movie'] == response.data['id']
+        assert obj['user_id'] == user.id
+
+    def test_user_can_update_like(self, movie_content, user):
+        path = reverse('movies-list')
+        client = get_client(user)
+        response = client.post(path, data=movie_content)
+        path = reverse('likes-list')
+        response = client.post(path, data={'movie': response.data['id']})
+        path = reverse('likes-detail', kwargs={'pk': response.data['id']})
+        response = client.put(path, data={'liked': False})
+        assert response.status_code == HTTP_200_OK
+        assert response.data['liked'] is False
+
+    def test_user_can_remove_like(self, movie_content, user):
+        path = reverse('movies-list')
+        client = get_client(user)
+        response = client.post(path, data=movie_content)
+        path = reverse('likes-list')
+        response = client.post(path, data={'movie': response.data['id']})
