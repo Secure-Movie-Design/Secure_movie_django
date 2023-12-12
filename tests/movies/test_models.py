@@ -84,35 +84,26 @@ def test_valid_movie_does_not_raise_exception(db):
 
 
 def test_valid_like_does_not_raise_exception(db, movie):
-    like = mixer.blend('movies.Like', movie=movie, liked=True)
+    like = mixer.blend('movies.Like', movie=movie)
     like.full_clean()
 
 
 def test_movie_to_string_returns_title(db):
     movie = mixer.blend('movies.Movie', title='A title')
-    assert str(movie) == f'Title: {movie.title}, Description: {movie.description}, Year: {movie.year}, Category: {movie.category}'
+    assert str(
+        movie) == f'Title: {movie.title}, Description: {movie.description}, Year: {movie.year}, Category: {movie.category}'
 
 
 def test_null_movie_id_raises_exception(db):
     with pytest.raises(IntegrityError):
-        mixer.blend('movies.Like', movie_id=None, liked=True)
+        mixer.blend('movies.Like', movie_id=None)
 
 
 def test_invalid_movie_id_raises_exception(db):
     with pytest.raises(ValueError):
-        mixer.blend('movies.Like', movie_id='a', liked=True)
-
-
-def test_null_like_raises_exception(db, movie):
-    with pytest.raises(ValidationError):
-        mixer.blend('movies.Like', movie=movie, liked=None)
-
-
-def test_invalid_like_raises_exception(db, movie):
-    with pytest.raises(ValidationError):
-        mixer.blend('movies.Like', movie=movie, liked='a')
+        mixer.blend('movies.Like', movie_id='a')
 
 
 def test_like_to_string_returns_movie_title(db, movie):
-    like = mixer.blend('movies.Like', movie=movie, liked=True)
-    assert str(like) == f'Movie: {movie.title}, Liked: True'
+    like = mixer.blend('movies.Like', movie=movie)
+    assert str(like) == f'Movie: {movie.title}, User: {like.user_id}'

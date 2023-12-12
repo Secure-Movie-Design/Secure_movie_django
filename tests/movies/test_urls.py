@@ -2,41 +2,55 @@ import json
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from mixer.backend.django import mixer
-from rest_framework.status import HTTP_200_OK, HTTP_405_METHOD_NOT_ALLOWED
+from rest_framework.status import HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from rest_framework.test import APIClient
 
 
 @pytest.fixture()
-def only_movies(db):
-    user = mixer.blend(get_user_model())
+def admin_user():
     admin = mixer.blend(get_user_model())
-    user.is_staff = user.is_superuser = False
-    admin.is_staff = admin.is_superuser = True
+    group = mixer.blend(Group, name='admin')
+    admin.groups.add(group)
     admin.save()
-    user.save()
+    return admin
+
+
+@pytest.fixture()
+def user():
+    user = mixer.blend(get_user_model())
+    return user
+
+
+@pytest.fixture()
+def movie_content():
+    return {
+        'title': 'New movie',
+        'description': 'New description',
+        'year': 2021,
+        'category': 'ACTION'
+    }
+
+
+@pytest.fixture()
+def only_movies(admin_user):
     return [
         mixer.blend('movies.Movie', title='First movie', description='First description', year=2021,
-                    category='ACTION', user=admin),
+                    category='ACTION', user=admin_user),
         mixer.blend('movies.Movie', title='Second movie', description='Second description', year=2022,
-                    category='ADVENTURE', user=admin),
+                    category='ADVENTURE', user=admin_user),
         mixer.blend('movies.Movie', title='Third movie', description='Third description', year=2023,
-                    category='COMEDY', user=admin),
+                    category='COMEDY', user=admin_user),
     ]
 
 
 @pytest.fixture()
-def movies_and_likes(db):
-    user = mixer.blend(get_user_model())
-    admin = mixer.blend(get_user_model())
-    user.is_staff = user.is_superuser = False
-    admin.is_staff = admin.is_superuser = True
-    admin.save()
-    user.save()
+def movies_and_likes(admin_user, user):
     movies = [
         mixer.blend('movies.Movie', title='First movie', description='First description', year=2021,
-                    category='ACTION', user=admin),
+                    category='ACTION', user=admin_user),
         mixer.blend('movies.Movie', title='Second movie', description='Second description', year=2022,
                     category='ADVENTURE', user=user),
         mixer.blend('movies.Movie', title='Third movie', description='Third description', year=2023,
@@ -44,7 +58,7 @@ def movies_and_likes(db):
     ]
     return [
         mixer.blend('movies.Like', movie=movies[0], liked=True, user=user),
-        mixer.blend('movies.Like', movie=movies[1], liked=True, user=admin),
+        mixer.blend('movies.Like', movie=movies[1], liked=True, user=admin_user),
         mixer.blend('movies.Like', movie=movies[2], liked=False, user=user),
     ]
 
@@ -69,19 +83,19 @@ class TestMovieList:
         path = reverse('movies-list')
         client = get_client()
         response = client.post(path)
-        assert response.status_code == HTTP_405_METHOD_NOT_ALLOWED
+        assert response.status_code == HTTP_403_FORBIDDEN
 
     def test_anonymous_user_cannot_update_movies(self):
         path = reverse('movies-list')
         client = get_client()
         response = client.put(path)
-        assert response.status_code == HTTP_405_METHOD_NOT_ALLOWED
+        assert response.status_code == HTTP_403_FORBIDDEN
 
     def test_anonymous_user_cannot_delete_movies(self):
         path = reverse('movies-list')
         client = get_client()
         response = client.delete(path)
-        assert response.status_code == HTTP_405_METHOD_NOT_ALLOWED
+        assert response.status_code == HTTP_403_FORBIDDEN
 
     def test_anonymous_user_can_retrieve_movies(self, only_movies):
         path = reverse('movies-list')
@@ -90,3 +104,32 @@ class TestMovieList:
         assert response.status_code == HTTP_200_OK
         obj = parse_response(response)
         assert len(obj) == len(only_movies)
+
+    def test_admin_can_create_movies(self, movie_content, admin_user):
+        path = reverse('movies-list')
+        client = get_client(admin_user)
+        response = client.post(path, data=movie_content)
+        assert response.status_code == HTTP_201_CREATED
+        obj = parse_response(response)
+        assert obj['title'] == movie_content['title']
+        assert obj['description'] == movie_content['description']
+        assert obj['year'] == movie_content['year']
+        assert obj['category'] == movie_content['category']
+
+    def test_admin_can_update_movies(self, movie_content, admin_user):
+        path = reverse('movies-list')
+        client = get_client(admin_user)
+        response = client.post(path, data=movie_content)
+        path = reverse('movies-detail', kwargs={'pk': response.data['id']})
+        movie_content['title'] = 'Updated movie'
+        response = client.put(path, data=movie_content)
+        assert response.status_code == HTTP_200_OK
+        assert response.data['title'] == 'Updated movie'
+
+    def test_admin_can_delete_movies(self, movie_content, admin_user):
+        path = reverse('movies-list')
+        client = get_client(admin_user)
+        response = client.post(path, data=movie_content)
+        path = reverse('movies-detail', kwargs={'pk': response.data['id']})
+        response = client.delete(path)
+        assert response.status_code == HTTP_204_NO_CONTENT

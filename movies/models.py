@@ -75,12 +75,9 @@ class Like(models.Model):
         to=get_user_model(),
         on_delete=models.CASCADE,
     )
-    liked = models.BooleanField(
-        null=False,
-    )
 
     def __str__(self):
-        return f'Movie: {self.movie.title}, Liked: {self.liked}'
+        return f'Movie: {self.movie.title}, User: {self.user_id}'
 
     class Meta:
         unique_together = ('movie', 'user_id',)
