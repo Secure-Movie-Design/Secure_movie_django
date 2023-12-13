@@ -55,7 +55,7 @@ class Movie(models.Model):
         max_length=200,
         null=False,
         blank=False,
-        validators=[ RegexValidator(r"https://image\.tmdb\.org/t/p/w500/[a-zA-Z\d]{27}\.jpg")]
+        validators=[RegexValidator(r"https://image\.tmdb\.org/t/p/w500/[a-zA-Z\d]{27}\.jpg")]
     )
 
     def __str__(self):

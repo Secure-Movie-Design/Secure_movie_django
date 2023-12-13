@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from movies.models import Movie, Like
@@ -14,12 +14,13 @@ class PublicMovieViewSet(viewsets.ModelViewSet):
     permission_classes = [MoviePermission]
 
     # get all movies liked by the authenticated user
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def user_liked_movies(self, request):
         user_likes = Like.objects.filter(user_id=self.request.user)
         liked_movies = [like.movie for like in user_likes]
         serializer = PublicMovieSerializer(liked_movies, many=True)
         return Response(serializer.data)
+
 
 # TODO: check and test
 class LikesViewSet(viewsets.ModelViewSet):
