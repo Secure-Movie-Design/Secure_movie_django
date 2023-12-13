@@ -54,6 +54,7 @@ class Movie(models.Model):
     image_url = models.CharField(
         max_length=200,
         null=False,
+        blank=False,
         validators=[ RegexValidator(r"https://image\.tmdb\.org/t/p/w500/[a-zA-Z\d]{27}\.jpg")]
     )
 
@@ -75,12 +76,9 @@ class Like(models.Model):
         to=get_user_model(),
         on_delete=models.CASCADE,
     )
-    liked = models.BooleanField(
-        null=False,
-    )
 
     def __str__(self):
-        return f'Movie: {self.movie.title}, Liked: {self.liked}'
+        return f'Movie: {self.movie.title}, User: {self.user_id}'
 
     class Meta:
         unique_together = ('movie', 'user_id',)

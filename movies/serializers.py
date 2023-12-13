@@ -6,12 +6,12 @@ from movies.models import Movie, Like
 class PublicMovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'description', 'year', 'category')
+        fields = ('id', 'title', 'description', 'year', 'category','image_url',)
         read_only_fields = ('id',)
 
 
 class PublicLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ('id', 'movie', 'liked', 'user_id')
-        read_only_fields = ('movie', 'user_id')
+        fields = ('id', 'movie','user_id',)
+        read_only_fields = ('id', 'user_id',)
