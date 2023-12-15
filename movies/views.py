@@ -26,7 +26,7 @@ class PublicMovieViewSet(viewsets.ModelViewSet):
 
 class LikesViewSet(viewsets.ModelViewSet):
     serializer_class = PublicLikeSerializer
-    permission_classes = [LikePermission]
+    permission_classes = [IsAuthenticated,LikePermission]
 
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.user)

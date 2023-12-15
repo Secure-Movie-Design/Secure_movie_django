@@ -18,6 +18,6 @@ class LikePermission(permissions.BasePermission):
         return True
     
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user_id
+        return request.user and request.user == obj.user_id
     
     
