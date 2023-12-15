@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -8,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from movies.models import Movie, Like
 from movies.permissions import LikePermission, MoviePermission
 from movies.serializers import PublicMovieSerializer, PublicLikeSerializer
+from rest_framework import exceptions
 
 
 class PublicMovieViewSet(viewsets.ModelViewSet):
@@ -29,7 +31,10 @@ class LikesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated,LikePermission]
 
     def perform_create(self, serializer):
-        serializer.save(user_id=self.request.user)
+        try:
+            serializer.save(user_id=self.request.user)
+        except IntegrityError:
+            raise exceptions.ValidationError("Like already set")
     
     def get_queryset(self):
         return Like.objects.filter(user_id=self.request.user)

@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from mixer.backend.django import mixer
-from rest_framework.status import HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from rest_framework.test import APIClient
 
 
@@ -190,3 +190,13 @@ class TestLikeList:
         client = get_client(user)
         response = client.delete(path)
         assert response.status_code == HTTP_204_NO_CONTENT
+
+    def test_user_can_add_like_unique(self, user, movies):
+
+        mixer.blend('movies.Like', id=1,user_id = user,movie=movies[0]),
+
+        path = reverse('likes-list')
+        client = get_client(user)
+        response = client.post(path, data={'movie': movies[0].id})
+        assert response.status_code == HTTP_400_BAD_REQUEST
+        obj = parse_response(response)
