@@ -1,9 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
-<<<<<<< HEAD
-=======
 from rest_framework.permissions import IsAuthenticated
->>>>>>> f5df2fab0c3b402c6b3b2afd4a2daf76c7f2ff17
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
