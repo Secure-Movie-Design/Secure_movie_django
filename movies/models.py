@@ -59,7 +59,8 @@ class Movie(models.Model):
     )
 
     def __str__(self):
-        return f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}'
+        return (f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}, '
+                f'Image: {self.image_url}')
 
 
 class Like(models.Model):

@@ -1,5 +1,4 @@
 import json
-from pprint import pprint
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -40,22 +39,19 @@ def movie_content():
 def movies(admin_user):
     return [
         mixer.blend('movies.Movie', id=1, title='First movie', description='First description', year=2021,
-                    category='ACTION', user=admin_user,
-                    image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+                    category='ACTION', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
         mixer.blend('movies.Movie', id=2, title='Second movie', description='Second description', year=2022,
-                    category='ADVENTURE', user=admin_user,
-                    image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+                    category='ADVENTURE', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
         mixer.blend('movies.Movie', id=3, title='Third movie', description='Third description', year=2023,
-                    category='COMEDY', user=admin_user,
-                    image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+                    category='COMEDY', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
     ]
 
 
 @pytest.fixture()
 def likes(admin_user, user, movies):
     return [
-        mixer.blend('movies.Like', id=4, movie=movies[0], user=user),
-        mixer.blend('movies.Like', id=5, movie=movies[1], user=admin_user),
+        mixer.blend('movies.Like', id=4, movie=movies[0], user_id=user),
+        mixer.blend('movies.Like', id=5, movie=movies[1], user_id=admin_user),
     ]
 
 
@@ -100,6 +96,22 @@ class TestMovieList:
         assert response.status_code == HTTP_200_OK
         obj = parse_response(response)
         assert len(obj) == len(movies)
+
+    def test_anonymous_user_cannot_retrieve_liked_movies(self, likes):
+        path = reverse('movies-user-liked-movies')
+        client = get_client()
+        response = client.get(path)
+        assert response.status_code == HTTP_403_FORBIDDEN
+
+    def test_user_can_retrieve_liked_movies(self, likes, user):
+        path = reverse('movies-user-liked-movies')
+        client = get_client(user)
+        response = client.get(path)
+        assert response.status_code == HTTP_200_OK
+        obj = parse_response(response)
+        print("objj: ", obj)
+        assert len(obj) == 1
+        assert obj[0]['id'] == likes[0].movie.id
 
     def test_admin_can_create_movies(self, movie_content, admin_user):
         path = reverse('movies-list')

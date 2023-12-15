@@ -22,7 +22,6 @@ class PublicMovieViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# TODO: check and test
 class LikesViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = PublicLikeSerializer
