@@ -30,36 +30,28 @@ def movie_content():
         'title': 'New movie',
         'description': 'New description',
         'year': 2021,
-        'category': 'ACTION'
+        'category': 'ACTION',
+        'image_url': 'https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'
     }
 
 
 @pytest.fixture()
-def only_movies(admin_user):
+def movies(admin_user):
     return [
-        mixer.blend('movies.Movie', title='First movie', description='First description', year=2021,
-                    category='ACTION', user=admin_user),
-        mixer.blend('movies.Movie', title='Second movie', description='Second description', year=2022,
-                    category='ADVENTURE', user=admin_user),
-        mixer.blend('movies.Movie', title='Third movie', description='Third description', year=2023,
-                    category='COMEDY', user=admin_user),
+        mixer.blend('movies.Movie', id=1, title='First movie', description='First description', year=2021,
+                    category='ACTION', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+        mixer.blend('movies.Movie', id=2, title='Second movie', description='Second description', year=2022,
+                    category='ADVENTURE', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+        mixer.blend('movies.Movie', id=3, title='Third movie', description='Third description', year=2023,
+                    category='COMEDY', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
     ]
 
 
 @pytest.fixture()
-def movies_and_likes(admin_user, user):
-    movies = [
-        mixer.blend('movies.Movie', title='First movie', description='First description', year=2021,
-                    category='ACTION', user=admin_user),
-        mixer.blend('movies.Movie', title='Second movie', description='Second description', year=2022,
-                    category='ADVENTURE', user=user),
-        mixer.blend('movies.Movie', title='Third movie', description='Third description', year=2023,
-                    category='COMEDY', user=user),
-    ]
+def likes(admin_user, user, movies):
     return [
-        mixer.blend('movies.Like', movie=movies[0], liked=True, user=user),
-        mixer.blend('movies.Like', movie=movies[1], liked=True, user=admin_user),
-        mixer.blend('movies.Like', movie=movies[2], liked=False, user=user),
+        mixer.blend('movies.Like', id=4, movie=movies[0], user_id=user),
+        mixer.blend('movies.Like', id=5, movie=movies[1], user_id=admin_user),
     ]
 
 
@@ -97,13 +89,29 @@ class TestMovieList:
         response = client.delete(path)
         assert response.status_code == HTTP_403_FORBIDDEN
 
-    def test_anonymous_user_can_retrieve_movies(self, only_movies):
+    def test_anonymous_user_can_retrieve_movies(self, movies):
         path = reverse('movies-list')
         client = get_client()
         response = client.get(path)
         assert response.status_code == HTTP_200_OK
         obj = parse_response(response)
-        assert len(obj) == len(only_movies)
+        assert len(obj) == len(movies)
+
+    def test_anonymous_user_cannot_retrieve_liked_movies(self, likes):
+        path = reverse('movies-user-liked-movies')
+        client = get_client()
+        response = client.get(path)
+        assert response.status_code == HTTP_403_FORBIDDEN
+
+    def test_user_can_retrieve_liked_movies(self, likes, user):
+        path = reverse('movies-user-liked-movies')
+        client = get_client(user)
+        response = client.get(path)
+        assert response.status_code == HTTP_200_OK
+        obj = parse_response(response)
+        print("objj: ", obj)
+        assert len(obj) == 1
+        assert obj[0]['id'] == likes[0].movie.id
 
     def test_admin_can_create_movies(self, movie_content, admin_user):
         path = reverse('movies-list')
@@ -126,11 +134,9 @@ class TestMovieList:
         assert response.status_code == HTTP_200_OK
         assert response.data['title'] == 'Updated movie'
 
-    def test_admin_can_delete_movies(self, movie_content, admin_user):
-        path = reverse('movies-list')
+    def test_admin_can_delete_movies(self, movies, admin_user):
         client = get_client(admin_user)
-        response = client.post(path, data=movie_content)
-        path = reverse('movies-detail', kwargs={'pk': response.data['id']})
+        path = reverse('movies-detail', kwargs={'pk': movies[0].id})
         response = client.delete(path)
         assert response.status_code == HTTP_204_NO_CONTENT
 
@@ -156,39 +162,31 @@ class TestLikeList:
         response = client.delete(path)
         assert response.status_code == HTTP_403_FORBIDDEN
 
-    def test_anonymous_user_can_retrieve_likes(self, movies_and_likes):
+    def test_anonymous_user_cannot_retrieve_likes(self, likes):
         path = reverse('likes-list')
         client = get_client()
         response = client.get(path)
-        assert response.status_code == HTTP_200_OK
-        obj = parse_response(response)
-        assert len(obj) == len(movies_and_likes)
+        assert response.status_code == HTTP_403_FORBIDDEN
 
-    def test_user_can_add_like(self, movie_content, user):
-        path = reverse('movies-list')
-        client = get_client(user)
-        response = client.post(path, data=movie_content)
+    def test_user_can_add_like(self, user, movies):
         path = reverse('likes-list')
-        response = client.post(path, data={'movie': response.data['id']})
+        client = get_client(user)
+        response = client.post(path, data={'movie': movies[0].id})
         assert response.status_code == HTTP_201_CREATED
         obj = parse_response(response)
-        assert obj['movie'] == response.data['id']
+        assert obj['movie'] == movies[0].id
         assert obj['user_id'] == user.id
 
-    def test_user_can_update_like(self, movie_content, user):
-        path = reverse('movies-list')
+    def test_user_can_update_like(self, user, likes, movies):
         client = get_client(user)
-        response = client.post(path, data=movie_content)
-        path = reverse('likes-list')
-        response = client.post(path, data={'movie': response.data['id']})
-        path = reverse('likes-detail', kwargs={'pk': response.data['id']})
-        response = client.put(path, data={'liked': False})
+        path = reverse('likes-detail', kwargs={'pk': likes[0].id})
+        response = client.put(path, data={'movie': movies[1].id})
         assert response.status_code == HTTP_200_OK
-        assert response.data['liked'] is False
+        obj = parse_response(response)
+        assert obj['movie'] == movies[1].id
 
-    def test_user_can_remove_like(self, movie_content, user):
-        path = reverse('movies-list')
+    def test_user_can_remove_like(self, user, likes):
+        path = reverse('likes-detail', kwargs={'pk': likes[0].id})
         client = get_client(user)
-        response = client.post(path, data=movie_content)
-        path = reverse('likes-list')
-        response = client.post(path, data={'movie': response.data['id']})
+        response = client.delete(path)
+        assert response.status_code == HTTP_204_NO_CONTENT

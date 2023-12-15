@@ -55,11 +55,12 @@ class Movie(models.Model):
         max_length=200,
         null=False,
         blank=False,
-        validators=[ RegexValidator(r"https://image\.tmdb\.org/t/p/w500/[a-zA-Z\d]{27}\.jpg")]
+        validators=[RegexValidator(r"https://image\.tmdb\.org/t/p/w500/[a-zA-Z\d]{27}\.jpg")]
     )
 
     def __str__(self):
-        return f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}'
+        return (f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}, '
+                f'Image: {self.image_url}')
 
 
 class Like(models.Model):
