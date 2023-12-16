@@ -36,6 +36,11 @@ class Movie(models.Model):
         validators=[MinLengthValidator(1)],
         null=False,
     )
+    director = models.CharField(
+        max_length=50,
+        validators=[MinLengthValidator(1), RegexValidator(r'^[a-zA-Z]+(\s[a-zA-Z]+\'?[a-zA-Z]*)*$')],
+        null=False,
+    )
     description = models.CharField(
         max_length=200,
         validators=[MinLengthValidator(1)],
@@ -60,7 +65,7 @@ class Movie(models.Model):
 
     def __str__(self):
         return (f'Title: {self.title}, Description: {self.description}, Year: {self.year}, Category: {self.category}, '
-                f'Image: {self.image_url}')
+                f'Image: {self.image_url}, Director: {self.director}')
 
 
 class Like(models.Model):

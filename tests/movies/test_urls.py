@@ -31,7 +31,8 @@ def movie_content():
         'description': 'New description',
         'year': 2021,
         'category': 'ACTION',
-        'image_url': 'https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'
+        'image_url': 'https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
+        'director': 'New Director'
     }
 
 
@@ -39,11 +40,14 @@ def movie_content():
 def movies(admin_user):
     return [
         mixer.blend('movies.Movie', id=1, title='First movie', description='First description', year=2021,
-                    category='ACTION', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+                    category='ACTION', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
+                    director='A Director'),
         mixer.blend('movies.Movie', id=2, title='Second movie', description='Second description', year=2022,
-                    category='ADVENTURE', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+                    category='ADVENTURE', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
+                    director='A Director'),
         mixer.blend('movies.Movie', id=3, title='Third movie', description='Third description', year=2023,
-                    category='COMEDY', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg'),
+                    category='COMEDY', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
+                    director='A Director'),
     ]
 
 
@@ -123,6 +127,7 @@ class TestMovieList:
         assert obj['description'] == movie_content['description']
         assert obj['year'] == movie_content['year']
         assert obj['category'] == movie_content['category']
+        assert obj['image_url'] == movie_content['image_url']
 
     def test_admin_can_update_movies(self, movie_content, admin_user):
         path = reverse('movies-list')

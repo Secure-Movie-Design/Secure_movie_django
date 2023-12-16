@@ -9,7 +9,7 @@ from datetime import datetime
 
 @pytest.fixture()
 def movie(db):
-    yield mixer.blend('movies.Movie', title='A title', description='A description', year=2022,
+    yield mixer.blend('movies.Movie', title='A title', description='A description', year=2022, director='A Director',
                       category=MovieCategory.ACTION)
 
 
@@ -41,6 +41,17 @@ def test_description_of_length_201_raises_exception(db, description):
 def test_null_description_raises_exception(db):
     with pytest.raises(IntegrityError):
         mixer.blend('movies.Movie', description=None)
+
+
+def test_null_director_raises_exception(db):
+    with pytest.raises(IntegrityError):
+        mixer.blend('movies.Movie', director=None)
+
+
+def test_invalid_director_raises_exception(db):
+    movie = mixer.blend('movies.Movie', director='A' * 51)
+    with pytest.raises(ValidationError):
+        movie.full_clean()
 
 
 def test_year_prior_to_1900_raises_exception(db):
@@ -80,7 +91,7 @@ def test_null_category_raises_exception(db):
 def test_valid_movie_does_not_raise_exception(db):
     movie = mixer.blend('movies.Movie', title='A title', description='A description', year=2022,
                         category=MovieCategory.ACTION,
-                        image_url="https://image.tmdb.org/t/p/w500/eQ4GRmP0EEkxjwlPbZlVn7HLoZp.jpg")
+                        image_url="https://image.tmdb.org/t/p/w500/eQ4GRmP0EEkxjwlPbZlVn7HLoZp.jpg", director='A Director')
     movie.full_clean()
 
 
@@ -105,7 +116,7 @@ def test_movie_to_string_returns_title(db):
     movie = mixer.blend('movies.Movie', title='A title')
     assert str(
         movie) == (f'Title: {movie.title}, Description: {movie.description}, Year: {movie.year}, '
-                   f'Category: {movie.category}, Image: {movie.image_url}')
+                   f'Category: {movie.category}, Image: {movie.image_url}, Director: {movie.director}')
 
 
 def test_null_movie_id_raises_exception(db):
