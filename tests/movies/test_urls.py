@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from mixer.backend.django import mixer
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_201_CREATED, \
+    HTTP_204_NO_CONTENT
 from rest_framework.test import APIClient
 
 
@@ -46,6 +47,9 @@ def movies(admin_user):
                     category='ADVENTURE', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
                     director='A Director'),
         mixer.blend('movies.Movie', id=3, title='Third movie', description='Third description', year=2023,
+                    category='COMEDY', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
+                    director='A Director'),
+        mixer.blend('movies.Movie', id=4, title='Fourth movie', description='Fourth description', year=2023,
                     category='COMEDY', image_url='https://image.tmdb.org/t/p/w500/6KErczPBROQty7QoIsaa6wJYXZi.jpg',
                     director='A Director'),
     ]
@@ -113,7 +117,6 @@ class TestMovieList:
         response = client.get(path)
         assert response.status_code == HTTP_200_OK
         obj = parse_response(response)
-        print("objj: ", obj)
         assert len(obj) == 1
         assert obj[0]['id'] == likes[0].movie.id
 
@@ -145,6 +148,16 @@ class TestMovieList:
         response = client.delete(path)
         assert response.status_code == HTTP_204_NO_CONTENT
 
+    def test_anonymous_user_can_sort_movies_by_title(self, movies):
+        path = reverse('movies-sort-title')
+        client = get_client()
+        response = client.get(path)
+        assert response.status_code == HTTP_200_OK
+        obj = parse_response(response)
+        assert obj[0]['title'] == 'First movie'
+        assert obj[1]['title'] == 'Fourth movie'
+        assert obj[2]['title'] == 'Second movie'
+        assert obj[3]['title'] == 'Third movie'
 
 @pytest.mark.django_db
 class TestLikeList:
@@ -197,9 +210,7 @@ class TestLikeList:
         assert response.status_code == HTTP_204_NO_CONTENT
 
     def test_user_can_add_like_unique(self, user, movies):
-
-        mixer.blend('movies.Like', id=1,user_id = user,movie=movies[0]),
-
+        mixer.blend('movies.Like', id=1, user_id=user, movie=movies[0])
         path = reverse('likes-list')
         client = get_client(user)
         response = client.post(path, data={'movie': movies[0].id})

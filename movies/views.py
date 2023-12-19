@@ -1,15 +1,22 @@
 from django.db import IntegrityError
+from django.db.models.functions import Lower
+from django.shortcuts import get_object_or_404
+from rest_framework import exceptions
+from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import permissions
-from django.shortcuts import get_object_or_404
+
 from movies.models import Movie, Like
 from movies.permissions import LikePermission, MoviePermission, isAdminUser
 from movies.serializers import PublicMovieSerializer, PublicLikeSerializer
-from rest_framework import exceptions
+
+
+def sort_by(sort_value: str, objects, serializer):
+    queryset = objects.order_by(Lower(sort_value))
+    serializer = serializer(queryset, many=True)
+    return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class PublicMovieViewSet(viewsets.ModelViewSet):
@@ -28,6 +35,10 @@ class PublicMovieViewSet(viewsets.ModelViewSet):
         liked_movies = [like.movie for like in user_likes]
         serializer = PublicMovieSerializer(liked_movies, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='sort-by-title', url_name='sort-title')
+    def sort_movie_by_title(self, request):
+        return sort_by('title', self.queryset, self.get_serializer_class())
 
 
 class LikesViewSet(viewsets.ModelViewSet):
