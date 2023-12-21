@@ -1,3 +1,5 @@
+import re
+
 from django.db import IntegrityError
 from django.db.models.functions import Lower
 from django.shortcuts import get_object_or_404
@@ -39,6 +41,12 @@ class PublicMovieViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='sort-by-title', url_name='sort-title')
     def sort_movie_by_title(self, request):
         return sort_by('title', self.queryset, self.get_serializer_class())
+
+    @action(detail=False, methods=['GET'], url_path=r'filter-by-director/(?P<director>[^/.]+)', url_name='filter-director')
+    def filter_movie_by_director(self, request, director=None):
+        queryset = Movie.objects.filter(director__icontains=director)
+        serializer = PublicMovieSerializer(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class LikesViewSet(viewsets.ModelViewSet):

@@ -159,6 +159,14 @@ class TestMovieList:
         assert obj[2]['title'] == 'Second movie'
         assert obj[3]['title'] == 'Third movie'
 
+    def test_anonymous_user_can_filter_movies_by_director(self, movies):
+        path = reverse('movies-filter-director', kwargs={'director': 'A Director'})
+        client = get_client()
+        response = client.get(path)
+        assert response.status_code == HTTP_200_OK
+        obj = parse_response(response)
+        assert len(obj) == len(movies)
+
     def test_user_type(self, user):
         path = reverse('movies-user-type')
         client = get_client(user)

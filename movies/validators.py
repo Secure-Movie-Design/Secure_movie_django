@@ -9,11 +9,12 @@ class NumberValidator(object):
     def validate(self, password, user=None):
         if not re.findall('\d', password):
             raise ValidationError(
-                ("The password must contain at least 1 digit, 0-9."),
+                self.get_help_text(),
                 code='password_no_number',
             )
 
-    def get_help_text(self):
+    @staticmethod
+    def get_help_text():
         return (
             "Your password must contain at least 1 digit, 0-9."
         )
@@ -23,11 +24,12 @@ class UppercaseValidator(object):
     def validate(self, password, user=None):
         if not re.findall('[A-Z]', password):
             raise ValidationError(
-                ("The password must contain at least 1 uppercase letter, A-Z."),
+                self.get_help_text(),
                 code='password_no_upper',
             )
 
-    def get_help_text(self):
+    @staticmethod
+    def get_help_text():
         return (
             "Your password must contain at least 1 uppercase letter, A-Z."
         )
@@ -37,11 +39,12 @@ class LowercaseValidator(object):
     def validate(self, password, user=None):
         if not re.findall('[a-z]', password):
             raise ValidationError(
-                ("The password must contain at least 1 lowercase letter, a-z."),
+                self.get_help_text(),
                 code='password_no_lower',
             )
 
-    def get_help_text(self):
+    @staticmethod
+    def get_help_text():
         return (
             "Your password must contain at least 1 lowercase letter, a-z."
         )
@@ -51,17 +54,18 @@ class SymbolValidator(object):
     def validate(self, password, user=None):
         if not re.findall('[()[\]{}|\\`~!@#$%^&*_\-+=;:\'",<>./?]', password):
             raise ValidationError(
-                ("The password must contain at least 1 symbol: " +
-                  "()[]{}|\`~!@#$%^&*_-+=;:'\",<>./?"),
+                self.get_help_text(),
                 code='password_no_symbol',
             )
 
-    def get_help_text(self):
+    @staticmethod
+    def get_help_text():
         return (
             "Your password must contain at least 1 symbol: " +
             "()[]{}|\`~!@#$%^&*_-+=;:'\",<>./?"
         )
-    
+
+
 class MaximumLengthValidator:
     """
     Validate that the password is of a maximum length.
@@ -75,7 +79,7 @@ class MaximumLengthValidator:
             raise ValidationError(
                 ngettext(
                     "This password is too long. It must contain at maximum "
-                    "%(max_length)d character.",
+                    "%(max_length)d characters.",
                     "This password is too long. It must contain at maximum "
                     "%(max_length)d characters.",
                     self.max_length,
@@ -86,7 +90,7 @@ class MaximumLengthValidator:
 
     def get_help_text(self):
         return ngettext(
-            "Your password must contain at maximun %(max_length)d character.",
+            "Your password must contain at maximum %(max_length)d characters.",
             "Your password must contain at maximum %(max_length)d characters.",
             self.max_length,
         ) % {"max_length": self.max_length}
