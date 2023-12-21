@@ -1,6 +1,4 @@
 
-
-
 from gettext import ngettext
 import re
 from django.contrib.auth import password_validation
@@ -44,7 +42,7 @@ class LowercaseValidator(object):
             )
 
     def get_help_text(self):
-        return _(
+        return (
             "Your password must contain at least 1 lowercase letter, a-z."
         )
 

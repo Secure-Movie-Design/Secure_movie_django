@@ -159,6 +159,15 @@ class TestMovieList:
         assert obj[2]['title'] == 'Second movie'
         assert obj[3]['title'] == 'Third movie'
 
+    def test_user_type(self, user):
+        path = reverse('movies-user-type')
+        client = get_client(user)
+        response = client.get(path)
+        assert response.status_code == HTTP_200_OK
+        obj = parse_response(response)
+        assert obj['user-type'] == 'user'
+
+
 @pytest.mark.django_db
 class TestLikeList:
 
@@ -216,3 +225,9 @@ class TestLikeList:
         response = client.post(path, data={'movie': movies[0].id})
         assert response.status_code == HTTP_400_BAD_REQUEST
         obj = parse_response(response)
+
+    def test_user_can_remove_like_by_movie(self, likes, user):
+        path = reverse('likes-by-movie', kwargs={'movie': likes[0].movie.id})
+        client = get_client(user)
+        response = client.delete(path)
+        assert response.status_code == HTTP_204_NO_CONTENT

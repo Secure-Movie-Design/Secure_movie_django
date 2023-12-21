@@ -54,7 +54,7 @@ class LikesViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Like.objects.filter(user_id=self.request.user)
 
-    @action(detail=False, methods=['delete'], url_path=r'by_movie/(?P<movie>[^/.]+)')
+    @action(detail=False, methods=['delete'], url_path=r'by_movie/(?P<movie>[^/.]+)', url_name='by-movie')
     def remove_by_movie(self, request, movie=None):
         instance = get_object_or_404(Like, user_id=request.user, movie=movie)
         instance.delete()
